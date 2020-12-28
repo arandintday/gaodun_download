@@ -67,7 +67,6 @@ def read_m3u8(m3u8,key,filename):
             #print("{} finish download".format(filename))
             num+=1
     writer.close()
-    os.system('del har//'+har)
     print("[*] Download successful")
     return 0
 
