@@ -70,16 +70,27 @@ def read_m3u8(m3u8,key,filename):
             #for j in range(0,50-perc):
                 #print(" ",end="")
             #print("]"+str(num)+" of "+str(max_num),end="\r")
-            print("[*] "+str(num)+" of "+str(max_num))
+            print("[*] "+str(num)+" of "+str(max_num),end="\r")
             #print("{} finish download".format(filename))
             num+=1
     writer.close()
-    print("[*] Download successful")
+    print("[*] {} download successful".format(filename))
     return 0
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
+    fin=0
+    err=0
+    folder = os.path.exists("download")
+    folder2 = os.path.exists("har")
+    if not folder:
+        os.makedirs("download")
+    else:
+        print("[*] Download folder already exists")
+    if not folder2:
+        os.makedirs("har")
+    else:
+        print("[*] Har folder already exists")
     har_list = os.listdir('har')
-    os.system("mkdir download")
     print("[*] Download queue:"+str(har_list))
     #pool = multiprocessing.Pool(processes = 1)
     for har in har_list:
@@ -88,9 +99,12 @@ if __name__ == '__main__':
         try:
             m3u8,key = parse_har('har//'+har)
             read_m3u8(m3u8,key,file_without_suffix)
+            fin+=1
         except Exception as e:
             print("[-] E: {} ".format(e))
             print("[-] E: Can't download {}, not a supported file or it contains non base64 key".format(har))
+            err+=1
     #pool.close()
     #pool.join()
-            
+    print("{} files download successful，{} files download failed".format(fin,err))
+    os.system("pause")
