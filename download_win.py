@@ -9,6 +9,7 @@ import base64
 import time,random
 def parse_har(har_file_name):
     file = open(har_file_name,'r',encoding='utf-8')
+    #file = open(har_file_name,'rb')
     content = file.read()
     my_har_origin = json.loads(content)
     print("[+] Json decoding successfully")
@@ -21,8 +22,13 @@ def parse_har(har_file_name):
                 if "src/get?id=" in req['request']['url']:
                     m3u8 = req['response']['content']['text']
                 if "authorize?id=" in req['request']['url']:
+                    if "application" in req['response']['content']['mimeType']:
+                        print("[+] Base64 code detected")
+                    else:
+                        print("[-] E: Not support bin type key for now")
+                        return
                     IV = req['response']['content']['text']
-                    #print(req['response']['content']['text'])
+                    print("[*] The key is {}, {} byte".format(IV,len(IV)))
     file.close()
     print("[+] Get m3u8 and key successfully")
     return m3u8,IV
@@ -31,6 +37,7 @@ def read_m3u8(m3u8,key,filename):
     all_content = base64.b64decode(m3u8).decode('utf-8')
     key  = base64.b64decode(key)
     print("[+] Base64 decoder load successfully")
+    print("[*] The decoded key is {},{} byte".format(key,len(key)))
     cryptor = AES.new(key, AES.MODE_CBC, key) 
     if "#EXTM3U" not in all_content:
         print("[-] E: Not found video in " + filename)
@@ -52,7 +59,7 @@ def read_m3u8(m3u8,key,filename):
                     #print(filename,pd_url)
                     break
                 except Exception as e:
-                    #print(e)
+                    print("[-] E: {} ".format(e))
                     print("[-] E: Rertrying...")
                     time.sleep(random.randint(1,5))
             writer.write(cryptor.decrypt(res.content))
@@ -83,7 +90,7 @@ if __name__ == '__main__':
             read_m3u8(m3u8,key,file_without_suffix)
         except Exception as e:
             print("[-] E: {} ".format(e))
-            print("[-] E: {} parse error".format(har))
+            print("[-] E: Can't download {}, not a supported file or it contains non base64 key".format(har))
     #pool.close()
     #pool.join()
             
